@@ -10,7 +10,7 @@ eraserThickness = 100
 ########################
 
 
-folderPath = "Header"
+folderPath = "assests"
 myList = os.listdir(folderPath)
 print(myList)
 overlayList = []
@@ -44,8 +44,8 @@ while True:
         # print(lmList)
 
         # tip of index and middle fingers
-        x1, y1 = lmList[8][1:]
-        x2, y2 = lmList[12][1:]
+        x1, y1 = lmList[8][1], lmList[8][2]
+        x2, y2 = lmList[12][1], lmList[12][2]
 
         # 3. Check which fingers are up
         fingers = detector.fingersUp()
@@ -109,4 +109,3 @@ while True:
     cv2.imshow("Canvas", imgCanvas)
     cv2.imshow("Inv", imgInv)
     cv2.waitKey(1)
-﻿
