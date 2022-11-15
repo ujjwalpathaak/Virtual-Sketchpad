@@ -4,29 +4,27 @@ import time
 import math
 import numpy as np
 
-
 class handDetector():
-    def __init__(self, mode=False, maxHands=2, detectionCon=0.5,modelComplexity=1,trackCon=0.5):
+    def __init__(self, mode=False, modelComplexity=1, maxHands=2, detectionCon=0.5, trackCon=0.5):
         self.mode = mode
         self.maxHands = maxHands
         self.detectionCon = detectionCon
-        self.modelComplex = modelComplexity
         self.trackCon = trackCon
-        self.mpHands = mp.solutions.hands
-        self.hands = self.mpHands.Hands(self.mode, self.maxHands,self.modelComplex,
-                                        self.detectionCon, self.trackCon)
-        self.mpDraw = mp.solutions.drawing_utils
+        self.modelComplex = modelComplexity
+        self.mpHands = mp.solutions.mediapipe.python.solutions.hands
+        self.mpDraw = mp.solutions.mediapipe.python.solutions.drawing_utils
+        self.hands = self.mpHands.Hands(self.mode, self.maxHands, self.modelComplex, self.detectionCon, self.trackCon)
+        self.tipIds = [4, 8, 12, 16, 20]
 
     def findHands(self, img, draw=True):
         imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         self.results = self.hands.process(imgRGB)
-        # print(results.multi_hand_landmarks)
 
         if self.results.multi_hand_landmarks:
             for handLms in self.results.multi_hand_landmarks:
                 if draw:
                     self.mpDraw.draw_landmarks(img, handLms,
-                                               self.mpHands.HAND_CONNECTIONS)
+                    self.mpHands.HAND_CONNECTIONS)
 
         return img
 
@@ -41,22 +39,18 @@ class handDetector():
                 # print(id, lm)
                 h, w, c = img.shape
                 cx, cy = int(lm.x * w), int(lm.y * h)
-                xList.append(cx)
-                yList.append(cy)
+                # xList.append(cx)
+                # yList.append(cy)
                 # print(id, cx, cy)
                 self.lmList.append([id, cx, cy])
+        # xmin, xmax = min(xList, default=0), max(xList, default=0)
+        # ymin, ymax = min(yList, default=0), max(yList, default=0)
+        # bbox = xmin, ymin, xmax, ymax
                 if draw:
                     cv2.circle(img, (cx, cy), 5, (255, 0, 255), cv2.FILLED)
 
-        xmin, xmax = min(xList, default=0), max(xList, default=0)
-        ymin, ymax = min(yList, default=0), max(yList, default=0)
-        bbox = xmin, ymin, xmax, ymax
-
-        if draw:
-            cv2.rectangle(img, (xmin - 20, ymin - 20), (xmax + 20, ymax + 20),
-                          (0, 255, 0), 2)
-
-        return self.lmList, bbox
+    
+        return self.lmList
 
     def fingersUp(self):
         fingers = []
@@ -77,7 +71,7 @@ class handDetector():
 
         return fingers
 
-    def findDistance(self, p1, p2, img, draw=True, r=15, t=3):
+    def findDistance(self, p1, p2, img, draw=True,r=15, t=3):
         x1, y1 = self.lmList[p1][1:]
         x2, y2 = self.lmList[p2][1:]
         cx, cy = (x1 + x2) // 2, (y1 + y2) // 2
@@ -91,7 +85,6 @@ class handDetector():
 
         return length, img, [x1, y1, x2, y2, cx, cy]
 
-
 def main():
     pTime = 0
     cTime = 0
@@ -101,19 +94,18 @@ def main():
         success, img = cap.read()
         img = detector.findHands(img)
         lmList, bbox = detector.findPosition(img)
-        if len(lmList) != 0:
-            print(lmList[4])
+        # if len(lmList) != 0:
+        #     print(lmList[4])
 
         cTime = time.time()
         fps = 1 / (cTime - pTime)
         pTime = cTime
 
         cv2.putText(img, str(int(fps)), (10, 70), cv2.FONT_HERSHEY_PLAIN, 3,
-                    (255, 0, 255), 3)
+        (255, 0, 255), 3)
 
         cv2.imshow("Image", img)
         cv2.waitKey(1)
-
 
 if __name__ == "__main__":
     main()
