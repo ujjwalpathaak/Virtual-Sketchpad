@@ -6,13 +6,14 @@ import HandTrackingModule as htm
 
 #######################
 brushThickness = 25
-eraserThickness = 100
+eraserThickness = 65
 ########################
 
 
 folderPath = "Header"
 myList = os.listdir(folderPath)
 overlayList = []
+print(overlayList)
 for imPath in myList:
     image = cv2.imread(f'{folderPath}/{imPath}')
     overlayList.append(image)
@@ -23,7 +24,7 @@ cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
-detector = htm.handDetector(detectionCon=0.85,maxHands=2)
+detector = htm.handDetector(detectionCon=0.85, maxHands=2)
 xp, yp = 0, 0
 imgCanvas = np.zeros((720, 1280, 3), np.uint8)
 
@@ -44,7 +45,7 @@ while True:
         x1, y1 = lmList[8][1:]
         x2, y2 = lmList[12][1:]
 
-        print(x1, x2,y1, y2)
+        print(x1, x2, y1, y2)
         # 3. Check which fingers are up
 
         fingers = detector.fingersUp()
@@ -54,22 +55,28 @@ while True:
         if fingers[1] and fingers[2]:
             xp, yp = 0, 0
             print("Selection Mode")
-
             # # Checking for the click
             if y1 < 125:
-                if 250 < x1 < 450:
+                if 245 < x1 < 390:
                     header = overlayList[0]
-                    drawColor = (255, 0, 255)
-                elif 550 < x1 < 750:
+                    drawColor = (255, 146, 230)
+                elif 391 < x1 < 536:
                     header = overlayList[1]
-                    drawColor = (255, 0, 0)
-                elif 800 < x1 < 950:
+                    drawColor = (0, 0, 255)
+                elif 537 < x1 < 682:
                     header = overlayList[2]
-                    drawColor = (0, 255, 0)
-                elif 1050 < x1 < 1280:
+                    drawColor = (255, 255, 51)
+                elif 683 < x1 < 828:
+                    drawColor = (255, 0, 0)
                     header = overlayList[3]
+                elif 829 < x1 < 974:
+                    header = overlayList[4]
+                    drawColor = (0, 255, 0)
+                elif 975 < x1 < 1280:
+                    header = overlayList[0]
                     drawColor = (0, 0, 0)
-            cv2.rectangle(img, (x1, y1 - 25), (x2, y2 + 25), drawColor, cv2.FILLED)
+            cv2.rectangle(img, (x1, y1 - 25), (x2, y2 + 25),
+                          drawColor, cv2.FILLED)
 
         # 5. If Drawing Mode - Index finger is up
         if fingers[1] and fingers[2] == False:
@@ -82,24 +89,25 @@ while True:
 
             if drawColor == (0, 0, 0):
                 cv2.line(img, (xp, yp), (x1, y1), drawColor, eraserThickness)
-                cv2.line(imgCanvas, (xp, yp), (x1, y1), drawColor, eraserThickness)
-            
+                cv2.line(imgCanvas, (xp, yp), (x1, y1),
+                         drawColor, eraserThickness)
+
             else:
                 cv2.line(img, (xp, yp), (x1, y1), drawColor, brushThickness)
-                cv2.line(imgCanvas, (xp, yp), (x1, y1), drawColor, brushThickness)
+                cv2.line(imgCanvas, (xp, yp), (x1, y1),
+                         drawColor, brushThickness)
 
             xp, yp = x1, y1
 
-
         # Clear Canvas when all fingers are up
-        if all (x >= 1 for x in fingers):
+        if all(x >= 1 for x in fingers):
             imgCanvas = np.zeros((720, 1280, 3), np.uint8)
 
     imgGray = cv2.cvtColor(imgCanvas, cv2.COLOR_BGR2GRAY)
     _, imgInv = cv2.threshold(imgGray, 50, 255, cv2.THRESH_BINARY_INV)
-    imgInv = cv2.cvtColor(imgInv,cv2.COLOR_GRAY2BGR)
-    img = cv2.bitwise_and(img,imgInv)
-    img = cv2.bitwise_or(img,imgCanvas)
+    imgInv = cv2.cvtColor(imgInv, cv2.COLOR_GRAY2BGR)
+    img = cv2.bitwise_and(img, imgInv)
+    img = cv2.bitwise_or(img, imgCanvas)
 
     # Setting the header image
     img[0:125, 0:1280] = header
